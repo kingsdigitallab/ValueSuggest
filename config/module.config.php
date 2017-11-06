@@ -51,6 +51,10 @@ return [
             /* OCLC */
             'valuesuggest:oclc:viaf' => 'ValueSuggest\Service\OclcDataTypeFactory',
             'valuesuggest:oclc:fast' => 'ValueSuggest\Service\OclcDataTypeFactory',
+
+            /* UKAT */
+            'valuesuggest:ukat:ukat' => 'ValueSuggest\Service\UkatDataTypeFactory',
+
         ],
     ],
     'router' => [
