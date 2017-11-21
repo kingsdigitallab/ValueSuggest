@@ -30,7 +30,7 @@ class UkatSuggest implements SuggesterInterface
             'PREFIX dc: <http://purl.org/dc/elements/1.1/>
             PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
             PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-            SELECT ?subject ?title ?info WHERE {
+            SELECT ?subject ?title ?topic ?info WHERE {
               {
                 ?subject dc:title ?value .
                 ?subject dc:title ?title .
@@ -40,11 +40,12 @@ class UkatSuggest implements SuggesterInterface
               } UNION {
                 ?subject skos:altLabel ?value .
                 ?subject skos:altLabel ?title .
+                ?subject skos:prefLabel ?topic .
               }
-              OPTIONAL { ?subject  skos:scopeNote  ?info }
+              OPTIONAL { ?subject  skos:scopeNote ?info }
               FILTER regex(?value, "^%s", "i")
             }
-            ORDER BY ASC(lcase(str(?title)))
+            ORDER BY ASC(lcase(str(?topic))) ASC(lcase(str(?title)))
             LIMIT 100',
             addslashes($query)
         );
@@ -63,12 +64,17 @@ class UkatSuggest implements SuggesterInterface
         $suggestions = [];
         $results = json_decode($response->getBody(), true);
         foreach ($results['results']['bindings'] as $result) {
+            $topic = '';
+            if (isset($result['topic']['value'])) {
+                $topic = ' (preferred term: ' . $result['topic']['value'] . ')';
+            }
+
             $info = '';
             if (isset($result['info']['value'])) {
                 $info = $result['info']['value'];
             }
             $suggestions[] = [
-                'value' => $result['title']['value'],
+                'value' => $result['title']['value'] . $topic,
                 'data' => [
                     'uri' => $result['subject']['value'],
                     'info' => $info,
